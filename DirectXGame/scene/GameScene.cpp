@@ -1,19 +1,29 @@
 #include "GameScene.h"
 #include "TextureManager.h"
 #include <cassert>
+#include "GameScene.h"
 
 GameScene::GameScene() {}
 
-GameScene::~GameScene() {}
+GameScene::~GameScene() {
+	delete modelSkydome_;
+}
 
 void GameScene::Initialize() {
 
 	dxCommon_ = DirectXCommon::GetInstance();
 	input_ = Input::GetInstance();
 	audio_ = Audio::GetInstance();
+
+	skedome_ = new Skydome();
+	skedome_->Initialize(model_,viewProjection_);
+	modelSkydome_ = Model::CreateFromOBJ("sphere", true);
+
 }
 
-void GameScene::Update() {}
+void GameScene::Update() {
+	skedome_->Update();
+}
 
 void GameScene::Draw() {
 
@@ -58,4 +68,6 @@ void GameScene::Draw() {
 	Sprite::PostDraw();
 
 #pragma endregion
+
+	skedome_->Draw();
 }

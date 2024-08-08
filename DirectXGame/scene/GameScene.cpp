@@ -1,6 +1,7 @@
 #include "GameScene.h"
-//#include "MathUtilityForText.h"
 #include "TextureManager.h"
+#include "Mymath.h"
+#include "CameraController.h"
 #include <cassert>
 #include <cstdint>
 

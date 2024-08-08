@@ -45,6 +45,8 @@ public: // メンバ関数
 	/// </summary>
 	void Draw();
 
+	void GenerateBlocks();
+
 private: // メンバ変数
 	DirectXCommon* dxCommon_ = nullptr;
 	Input* input_ = nullptr;
@@ -59,7 +61,7 @@ private: // メンバ変数
 	uint32_t textureHandle_ = 0u;
 
 	Player* player_ = nullptr;
-
+	Model* model_ = nullptr;
 	Model* modelPlayer_ = nullptr;
 	Model* modelBlock_ = nullptr;
 	Model* modelSkydome_ = nullptr;
@@ -67,7 +69,7 @@ private: // メンバ変数
 	WorldTransform worldTransformSkydome_;
 	DebugCamera* debugCamera_ = nullptr;
 	bool isDebugCameraActive_ = false;
-	MapChipField* mapChipField_;
+	MapChipField* mapChipField_ = nullptr;
 
 	CameraController* cameracontroller = nullptr;
 

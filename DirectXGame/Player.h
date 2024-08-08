@@ -1,5 +1,4 @@
 #pragma once
-<<<<<<< Updated upstream
 #include <WorldTransform.h>
 #include <Model.h>
 #include <ViewProjection.h>
@@ -48,5 +47,3 @@ private:
 	uint32_t textureHandle_ = 0u;
 };
 
-=======
->>>>>>> Stashed changes

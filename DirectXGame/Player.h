@@ -11,6 +11,10 @@ public:
 		kLeft,
 	};
 
+	enum Corner {
+		kRightBottom
+	};
+
 	/// <summary>
 	/// 初期化
 	/// </summary>

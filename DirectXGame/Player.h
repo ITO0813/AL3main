@@ -45,7 +45,7 @@ private:
 
 	static inline const float kAcceleration = 0.01f;
 	static inline const float kAttenuation = 0.05f;
-	static inline const float kJumpAcceleration = 1.0f;
+	static inline const float kJumpAcceleration = 0.01f;
 	static inline const float kGravityAcceleration = 0.98f;
 	static inline const float kAttenuationWall = 0.2f;
 	static inline const float kAttenuationLanding = 0.2f;
@@ -69,6 +69,7 @@ private:
 	ViewProjection* viewProjection_ = nullptr;
 	Vector3 velocity_ = {};
 	bool onGround_ = true;
+	bool landing = false;
 	LRDirection lrDirection_ = LRDirection::kRight;
 	float turnFirstRotationY_ = 0.0f;
 	float turnTimer_ = 0.0f;

@@ -310,7 +310,7 @@ void Player::UpdateOnGround(const CollisionMapInfo& info)
 {
 	//ジャンプ開始
 	if (onGround_) {
-		if (velocity_.y > 0.0f) {
+		if (velocity_.y > 0.1f) {
 			onGround_ = false;
 		}
 		else {

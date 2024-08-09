@@ -49,7 +49,7 @@ private:
 	static inline const float kGravityAcceleration = 0.98f;
 	static inline const float kAttenuationWall = 0.2f;
 	static inline const float kAttenuationLanding = 0.2f;
-	static inline const float kLimitFallSpeed = 0.5f;
+	static inline const float kLimitFallSpeed = 0.005f;
 	static inline const float kLimitRunSpeed = 0.5f;
 	static inline const float kTimeTurn = 0.3f;
 	static inline const float kWidth = 0.8f;

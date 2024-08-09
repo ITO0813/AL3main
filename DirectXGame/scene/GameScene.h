@@ -73,5 +73,4 @@ private: // メンバ変数
 
 	CameraController* cameracontroller = nullptr;
 
-	void GenerateBlocks();
 };

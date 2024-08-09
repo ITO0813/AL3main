@@ -13,11 +13,6 @@ enum class MapChipType {
 	kBlock, // ブロック
 };
 
-
-struct MapChipData {
-	std::vector<std::vector<MapChipType>> data;
-};
-
 /// <summary>
 /// マップチップフィールド
 /// </summary>

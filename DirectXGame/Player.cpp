@@ -382,6 +382,3 @@ Vector3 Player::CornerPosition(const Vector3& center, Corner corner)
 
 	return center + offsetTable[static_cast<uint32_t>(corner)];
 }
-
-
-

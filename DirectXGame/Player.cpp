@@ -36,7 +36,7 @@ void Player::Update()
 	worldTransform_.translation_ += collisionMapInfo.move;
 
 	if (collisionMapInfo.ceiling) {
-		velocity_.y = 0;
+		velocity_.y =	0.0f;
 	}
 	if (collisionMapInfo.hitWall) {
 		velocity_.x *= (1.0f - kAttenuationWall);

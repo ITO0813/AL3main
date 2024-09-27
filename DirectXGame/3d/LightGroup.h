@@ -3,6 +3,7 @@
 #include "Vector2.h"
 #include "Vector3.h"
 #include <Windows.h>
+#include <array>
 #include <d3d12.h>
 #include <d3dx12.h>
 #include <wrl.h>
@@ -37,13 +38,13 @@ public: // サブクラス
 		Vector3 ambientColor;
 		float pad1;
 		// 平行光源用
-		DirectionalLight::ConstBufferData dirLights[kDirLightNum];
+		std::array<DirectionalLight::ConstBufferData, kDirLightNum> dirLights;
 		// 点光源用
-		PointLight::ConstBufferData pointLights[kPointLightNum];
+		std::array<PointLight::ConstBufferData, kPointLightNum> pointLights;
 		// スポットライト用
-		SpotLight::ConstBufferData spotLights[kSpotLightNum];
+		std::array<SpotLight::ConstBufferData, kSpotLightNum> spotLights;
 		// 丸影用
-		CircleShadow::ConstBufferData circleShadows[kCircleShadowNum];
+		std::array<CircleShadow::ConstBufferData, kCircleShadowNum> circleShadows;
 	};
 
 public: // 静的メンバ関数
@@ -67,7 +68,7 @@ public: // メンバ関数
 	/// <summary>
 	/// 描画
 	/// </summary>
-	void Draw(ID3D12GraphicsCommandList* cmdList, UINT rootParameterIndex);
+	void Draw(ID3D12GraphicsCommandList* cmdList, UINT rootParameterIndex) const;
 
 	/// <summary>
 	/// 定数バッファ転送
@@ -228,16 +229,16 @@ private: // メンバ変数
 	Vector3 ambientColor_ = {1, 1, 1};
 
 	// 平行光源の配列
-	DirectionalLight dirLights_[kDirLightNum];
+	std::array<DirectionalLight, kDirLightNum> dirLights_;
 
 	// 点光源の配列
-	PointLight pointLights_[kPointLightNum];
+	std::array<PointLight, kPointLightNum> pointLights_;
 
 	// スポットライトの配列
-	SpotLight spotLights_[kSpotLightNum];
+	std::array<SpotLight, kSpotLightNum> spotLights_;
 
 	// 丸影の配列
-	CircleShadow circleShadows_[kCircleShadowNum];
+	std::array<CircleShadow, kCircleShadowNum> circleShadows_;
 
 	// ダーティフラグ
 	bool dirty_ = false;

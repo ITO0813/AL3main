@@ -39,13 +39,13 @@ public: // 静的メンバ関数
 public: // メンバ関数
 	/// <summary>
 	/// ゲームウィンドウの作成
-	/// <param name="titlescene">ウィンドウタイトル</param>
+	/// <param name="title">ウィンドウタイトル</param>
 	/// <param name="windowStyle">ウィンドウの初期スタイル</param>
 	/// <param name="clientWidth">ウィンドウのクライアント領域の初期幅</param>
 	/// <param name="clientHeight">ウィンドウのクライアント領域の初期高さ</param>
 	/// </summary>
 	void CreateGameWindow(
-	    const wchar_t* titlescene = L"DirectXGame", UINT windowStyle = WS_OVERLAPPEDWINDOW,
+	    const wchar_t* title = L"DirectXGame", UINT windowStyle = WS_OVERLAPPEDWINDOW,
 	    int32_t clientWidth = kWindowWidth, int32_t clientHeight = kWindowHeight);
 
 	/// <summary>

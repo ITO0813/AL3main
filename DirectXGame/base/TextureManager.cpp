@@ -45,11 +45,11 @@ void TextureManager::ResetAll() {
 	assert(SUCCEEDED(result));
 
 	// 全テクスチャを初期化
-	for (size_t j = 0; j < kNumDescriptors; j++) {
-		textures_[j].resource.Reset();
-		textures_[j].cpuDescHandleSRV.ptr = 0;
-		textures_[j].gpuDescHandleSRV.ptr = 0;
-		textures_[j].name.clear();
+	for (size_t i = 0; i < kNumDescriptors; i++) {
+		textures_[i].resource.Reset();
+		textures_[i].cpuDescHandleSRV.ptr = 0;
+		textures_[i].gpuDescHandleSRV.ptr = 0;
+		textures_[i].name.clear();
 	}
 	useTable_.Reset();
 }
@@ -150,10 +150,10 @@ uint32_t TextureManager::LoadInternal(const std::string& fileName) {
 	assert(SUCCEEDED(result));
 
 	// テクスチャバッファにデータ転送
-	for (size_t j = 0; j < metadata.mipLevels; j++) {
-		const Image* img = scratchImg.GetImage(j, 0, 0); // 生データ抽出
+	for (size_t i = 0; i < metadata.mipLevels; i++) {
+		const Image* img = scratchImg.GetImage(i, 0, 0); // 生データ抽出
 		result = texture.resource->WriteToSubresource(
-		    (UINT)j,
+		    (UINT)i,
 		    nullptr,              // 全領域へコピー
 		    img->pixels,          // 元データアドレス
 		    (UINT)img->rowPitch,  // 1ラインサイズ

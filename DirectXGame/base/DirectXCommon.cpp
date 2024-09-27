@@ -1,5 +1,5 @@
 #include "DirectXCommon.h"
-#include "SafeDelete.h"
+#include "DebugText.h"
 #include <algorithm>
 #include <cassert>
 #include <thread>
@@ -13,12 +13,18 @@
 
 using namespace Microsoft::WRL;
 
+namespace {
+const uint32_t kNumRTVDescriptor = 4;
+const uint32_t kLinearRTVStart = 2;
+} // namespace
+
 DirectXCommon* DirectXCommon::GetInstance() {
 	static DirectXCommon instance;
 	return &instance;
 }
 
-void DirectXCommon::Initialize(WinApp* winApp, int32_t backBufferWidth, int32_t backBufferHeight) {
+void DirectXCommon::Initialize(
+    WinApp* winApp, int32_t backBufferWidth, int32_t backBufferHeight, bool enableDebugLayer) {
 	// nullptrチェック
 	assert(winApp);
 	assert(4 <= backBufferWidth && backBufferWidth <= 4096);
@@ -33,7 +39,7 @@ void DirectXCommon::Initialize(WinApp* winApp, int32_t backBufferWidth, int32_t 
 	reference_ = std::chrono::steady_clock::now();
 
 	// DXGIデバイス初期化
-	InitializeDXGIDevice();
+	InitializeDXGIDevice(enableDebugLayer);
 
 	// コマンド関連初期化
 	InitializeCommand();
@@ -61,15 +67,8 @@ void DirectXCommon::PreDraw() {
 	    D3D12_RESOURCE_STATE_RENDER_TARGET);
 	commandList_->ResourceBarrier(1, &barrier);
 
-	// レンダーターゲットビュー用ディスクリプタヒープのハンドルを取得
-	CD3DX12_CPU_DESCRIPTOR_HANDLE rtvH = CD3DX12_CPU_DESCRIPTOR_HANDLE(
-	    rtvHeap_->GetCPUDescriptorHandleForHeapStart(), bbIndex,
-	    device_->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV));
-	// 深度ステンシルビュー用デスクリプタヒープのハンドルを取得
-	CD3DX12_CPU_DESCRIPTOR_HANDLE dsvH =
-	    CD3DX12_CPU_DESCRIPTOR_HANDLE(dsvHeap_->GetCPUDescriptorHandleForHeapStart());
-	// レンダーターゲットをセット
-	commandList_->OMSetRenderTargets(1, &rtvH, false, &dsvH);
+	// レンダーターゲット設定。SRGBフォーマットがデフォルト
+	SetRenderTargets(true);
 
 	// 全画面クリア
 	ClearRenderTarget();
@@ -185,29 +184,48 @@ int32_t DirectXCommon::GetBackBufferWidth() const { return backBufferWidth_; }
 
 int32_t DirectXCommon::GetBackBufferHeight() const { return backBufferHeight_; }
 
-void DirectXCommon::InitializeDXGIDevice() {
+void DirectXCommon::SetRenderTargets(bool sRGB) {
+	// バックバッファの番号を取得（2つなので0番か1番）
+	UINT bbIndex = swapChain_->GetCurrentBackBufferIndex();
+	UINT rtvIndex = sRGB ? bbIndex : bbIndex + kLinearRTVStart;
+
+	// レンダーターゲットビュー用ディスクリプタヒープのハンドルを取得
+	CD3DX12_CPU_DESCRIPTOR_HANDLE rtvH = CD3DX12_CPU_DESCRIPTOR_HANDLE(
+	    rtvHeap_->GetCPUDescriptorHandleForHeapStart(), rtvIndex,
+	    device_->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV));
+	// 深度ステンシルビュー用デスクリプタヒープのハンドルを取得
+	CD3DX12_CPU_DESCRIPTOR_HANDLE dsvH =
+	    CD3DX12_CPU_DESCRIPTOR_HANDLE(dsvHeap_->GetCPUDescriptorHandleForHeapStart());
+	// レンダーターゲットをセット
+	commandList_->OMSetRenderTargets(1, &rtvH, false, &dsvH);
+}
+
+void DirectXCommon::InitializeDXGIDevice([[maybe_unused]] bool enableDebugLayer) {
 	HRESULT result = S_FALSE;
 
 #ifdef _DEBUG
-	ComPtr<ID3D12Debug> debugController;
-	//デバッグレイヤーをオンに
-	if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController)))) {
-		debugController->EnableDebugLayer();
-	}
-	// DREDレポートをオンに
-	ComPtr<ID3D12DeviceRemovedExtendedDataSettings> dredSettings;
-	if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&dredSettings)))) {
-		dredSettings->SetAutoBreadcrumbsEnablement(D3D12_DRED_ENABLEMENT_FORCED_ON);
-		dredSettings->SetPageFaultEnablement(D3D12_DRED_ENABLEMENT_FORCED_ON);
+	if (enableDebugLayer) {
+		ComPtr<ID3D12Debug> debugController;
+		// デバッグレイヤーをオンに
+		if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController)))) {
+			debugController->EnableDebugLayer();
+		}
+		// DREDレポートをオンに
+		ComPtr<ID3D12DeviceRemovedExtendedDataSettings> dredSettings;
+		if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&dredSettings)))) {
+			dredSettings->SetAutoBreadcrumbsEnablement(D3D12_DRED_ENABLEMENT_FORCED_ON);
+			dredSettings->SetPageFaultEnablement(D3D12_DRED_ENABLEMENT_FORCED_ON);
+		}
 	}
 #endif
 
 	// 対応レベルの配列
 	D3D_FEATURE_LEVEL levels[] = {
-	    D3D_FEATURE_LEVEL_12_1,
-	    D3D_FEATURE_LEVEL_12_0,
-	    D3D_FEATURE_LEVEL_11_1,
-	    D3D_FEATURE_LEVEL_11_0,
+	    D3D_FEATURE_LEVEL_12_2, D3D_FEATURE_LEVEL_12_1, D3D_FEATURE_LEVEL_12_0,
+	    D3D_FEATURE_LEVEL_11_1, D3D_FEATURE_LEVEL_11_0,
+	};
+	const char* featureLevelStrings[] = {
+	    "12.2", "12.1", "12.0", "11.1", "11.0",
 	};
 
 	// DXGIファクトリーの生成
@@ -219,10 +237,10 @@ void DirectXCommon::InitializeDXGIDevice() {
 	// ここに特定の名前を持つアダプターオブジェクトが入る
 	ComPtr<IDXGIAdapter4> tmpAdapter;
 	// パフォーマンスが高いものから順に、全てのアダプターを列挙する
-	for (UINT j = 0; dxgiFactory_->EnumAdapterByGpuPreference(
-	                     j, DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE, IID_PPV_ARGS(&tmpAdapter)) !=
+	for (UINT i = 0; dxgiFactory_->EnumAdapterByGpuPreference(
+	                     i, DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE, IID_PPV_ARGS(&tmpAdapter)) !=
 	                 DXGI_ERROR_NOT_FOUND;
-	     j++) {
+	     i++) {
 		// 動的配列に追加する
 		adapters.push_back(tmpAdapter);
 	}
@@ -241,14 +259,16 @@ void DirectXCommon::InitializeDXGIDevice() {
 
 	result = S_FALSE;
 	D3D_FEATURE_LEVEL featureLevel;
-	for (int j = 0; j < adapters.size(); j++) {
+	for (int i = 0; i < adapters.size(); i++) {
 		// デバイスを生成
 		for (int levelIndex = 0; levelIndex < _countof(levels); levelIndex++) {
 			result =
-			    D3D12CreateDevice(adapters[j].Get(), levels[levelIndex], IID_PPV_ARGS(&device_));
+			    D3D12CreateDevice(adapters[i].Get(), levels[levelIndex], IID_PPV_ARGS(&device_));
 			if (SUCCEEDED(result)) {
 				// デバイスを生成できた時点でループを抜ける
 				featureLevel = levels[levelIndex];
+				DebugText::GetInstance()->ConsolePrintf(
+				    std::format("FeatureLevel : {}\n", featureLevelStrings[levelIndex]).c_str());
 				break;
 			}
 		}
@@ -263,26 +283,28 @@ void DirectXCommon::InitializeDXGIDevice() {
 	assert(SUCCEEDED(result));
 
 #ifdef _DEBUG
-	ComPtr<ID3D12InfoQueue> infoQueue;
-	if (SUCCEEDED(device_->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
-		// 抑制するエラー
-		D3D12_MESSAGE_ID denyIds[] = {
-		    /*
-		     * Windows11でのDXGIデバッグレイヤーとDX12デバッグレイヤーの相互作用バグによるエラーメッセージ
-		     * https://stackoverflow.com/questions/69805245/directx-12-application-is-crashing-in-windows-11
-		     */
-		    D3D12_MESSAGE_ID_RESOURCE_BARRIER_MISMATCHING_COMMAND_LIST_TYPE};
-		// 抑制する表示レベル
-		D3D12_MESSAGE_SEVERITY severities[] = {D3D12_MESSAGE_SEVERITY_INFO};
-		D3D12_INFO_QUEUE_FILTER filter{};
-		filter.DenyList.NumIDs = _countof(denyIds);
-		filter.DenyList.pIDList = denyIds;
-		filter.DenyList.NumSeverities = _countof(severities);
-		filter.DenyList.pSeverityList = severities;
-		// 指定したエラーの表示を抑制する
-		infoQueue->PushStorageFilter(&filter);
-		// エラー時にブレークを発生させる
-		infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, true);
+	if (enableDebugLayer) {
+		ComPtr<ID3D12InfoQueue> infoQueue;
+		if (SUCCEEDED(device_->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
+			// 抑制するエラー
+			D3D12_MESSAGE_ID denyIds[] = {
+			    /*
+			     * Windows11でのDXGIデバッグレイヤーとDX12デバッグレイヤーの相互作用バグによるエラーメッセージ
+			     * https://stackoverflow.com/questions/69805245/directx-12-application-is-crashing-in-windows-11
+			     */
+			    D3D12_MESSAGE_ID_RESOURCE_BARRIER_MISMATCHING_COMMAND_LIST_TYPE};
+			// 抑制する表示レベル
+			D3D12_MESSAGE_SEVERITY severities[] = {D3D12_MESSAGE_SEVERITY_INFO};
+			D3D12_INFO_QUEUE_FILTER filter{};
+			filter.DenyList.NumIDs = _countof(denyIds);
+			filter.DenyList.pIDList = denyIds;
+			filter.DenyList.NumSeverities = _countof(severities);
+			filter.DenyList.pSeverityList = severities;
+			// 指定したエラーの表示を抑制する
+			infoQueue->PushStorageFilter(&filter);
+			// エラー時にブレークを発生させる
+			infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, true);
+		}
 	}
 #endif
 }
@@ -360,20 +382,20 @@ void DirectXCommon::CreateFinalRenderTargets() {
 	// 各種設定をしてディスクリプタヒープを生成
 	D3D12_DESCRIPTOR_HEAP_DESC heapDesc{};
 	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV; // レンダーターゲットビュー
-	heapDesc.NumDescriptors = swcDesc.BufferCount;
+	heapDesc.NumDescriptors = kNumRTVDescriptor;
 	result = device_->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&rtvHeap_));
 	assert(SUCCEEDED(result));
 
 	// 裏表の２つ分について
 	backBuffers_.resize(swcDesc.BufferCount);
-	for (int j = 0; j < backBuffers_.size(); j++) {
+	for (int i = 0; i < backBuffers_.size(); i++) {
 		// スワップチェーンからバッファを取得
-		result = swapChain_->GetBuffer(j, IID_PPV_ARGS(&backBuffers_[j]));
+		result = swapChain_->GetBuffer(i, IID_PPV_ARGS(&backBuffers_[i]));
 		assert(SUCCEEDED(result));
 
 		// ディスクリプタヒープのハンドルを取得
 		CD3DX12_CPU_DESCRIPTOR_HANDLE handle = CD3DX12_CPU_DESCRIPTOR_HANDLE(
-		    rtvHeap_->GetCPUDescriptorHandleForHeapStart(), j,
+		    rtvHeap_->GetCPUDescriptorHandleForHeapStart(), i,
 		    device_->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV));
 		// レンダーターゲットビューの設定
 		D3D12_RENDER_TARGET_VIEW_DESC renderTargetViewDesc{};
@@ -381,7 +403,14 @@ void DirectXCommon::CreateFinalRenderTargets() {
 		renderTargetViewDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
 		renderTargetViewDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
 		// レンダーターゲットビューの生成
-		device_->CreateRenderTargetView(backBuffers_[j].Get(), &renderTargetViewDesc, handle);
+		device_->CreateRenderTargetView(backBuffers_[i].Get(), &renderTargetViewDesc, handle);
+
+		// Linear版のRTV作成
+		handle = CD3DX12_CPU_DESCRIPTOR_HANDLE(
+		    rtvHeap_->GetCPUDescriptorHandleForHeapStart(), i + kLinearRTVStart,
+		    device_->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV));
+		renderTargetViewDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		device_->CreateRenderTargetView(backBuffers_[i].Get(), &renderTargetViewDesc, handle);
 	}
 }
 

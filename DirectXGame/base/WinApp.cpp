@@ -85,7 +85,7 @@ LRESULT WinApp::WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
 }
 
 void WinApp::CreateGameWindow(
-    const wchar_t* titlescene, UINT windowStyle, int32_t clientWidth, int32_t clientHeight) {
+    const wchar_t* title, UINT windowStyle, int32_t clientWidth, int32_t clientHeight) {
 
 	// COM初期化
 	CoInitializeEx(nullptr, COINIT_MULTITHREADED);
@@ -108,7 +108,7 @@ void WinApp::CreateGameWindow(
 	// ウィンドウオブジェクトの生成
 	hwnd_ = CreateWindow(
 	    wndClass_.lpszClassName, // クラス名
-	    titlescene,                   // タイトルバーの文字
+	    title,                   // タイトルバーの文字
 	    windowStyle_,            // タイトルバーと境界線があるウィンドウ
 	    CW_USEDEFAULT,           // 表示X座標（OSに任せる）
 	    CW_USEDEFAULT,           // 表示Y座標（OSに任せる）

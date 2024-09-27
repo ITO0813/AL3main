@@ -26,7 +26,7 @@ public: // メンバ関数
 	/// </summary>
 	void Initialize(
 	    WinApp* win, int32_t backBufferWidth = WinApp::kWindowWidth,
-	    int32_t backBufferHeight = WinApp::kWindowHeight, bool enableDebugLayer = true);
+	    int32_t backBufferHeight = WinApp::kWindowHeight);
 
 	/// <summary>
 	/// 描画前処理
@@ -75,8 +75,6 @@ public: // メンバ関数
 	// バックバッファの数を取得
 	size_t GetBackBufferCount() const { return backBuffers_.size(); }
 
-	void SetRenderTargets(bool sRGB);
-
 private: // メンバ変数
 	// ウィンドウズアプリケーション管理
 	WinApp* winApp_;
@@ -109,7 +107,7 @@ private: // メンバ関数
 	/// <summary>
 	/// DXGIデバイス初期化
 	/// </summary>
-	void InitializeDXGIDevice(bool enableDebugLayer = true);
+	void InitializeDXGIDevice();
 
 	/// <summary>
 	/// スワップチェーンの生成

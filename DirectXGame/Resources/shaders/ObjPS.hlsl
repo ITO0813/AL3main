@@ -19,7 +19,7 @@ float4 main(VSOutput input) : SV_TARGET {
 	float3 ambient = m_ambient;
 
 	// シェーディングによる色
-    float4 shadecolor = float4(ambientColor * ambient, m_alpha);
+	float4 shadecolor = float4(ambientColor * ambient, m_alpha);
 
 	// 平行光源
 	for (int i = 0; i < DIRLIGHT_NUM; i++) {
@@ -135,5 +135,5 @@ float4 main(VSOutput input) : SV_TARGET {
 	}
 
 	// シェーディングによる色で描画
-	return shadecolor * texcolor * color;
+	return shadecolor * texcolor;
 }

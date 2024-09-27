@@ -1,10 +1,10 @@
 #pragma once
 
 #include <array>
+#include <d3dx12.h>
 #include <string>
 #include <unordered_map>
 #include <wrl.h>
-#include<d3dx12.h>
 
 /// <summary>
 /// テクスチャマネージャ

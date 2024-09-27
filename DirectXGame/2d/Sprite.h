@@ -15,16 +15,14 @@
 class Sprite {
 public:
 	enum class BlendMode {
-		kNone,      //!< ブレンドなし
-		kNormal,    //!< 通常αブレンド。デフォルト。 Src * SrcA + Dest * (1 - SrcA)
-		kAdd,       //!< 加算。Src * SrcA + Dest * 1
-		kSubtract,  //!< 減算。Dest * 1 - Src * SrcA
-		kMultiply,  //!< 乗算。Src * 0 + Dest * Src
-		kScreen,    //!< スクリーン。Src * (1 - Dest) + Dest * 1
-		kExclusion, //!< 除外。(1 - Dest) * Src + (1 - Src) * Dest
+		kNone,     //!< ブレンドなし
+		kNormal,   //!< 通常αブレンド。デフォルト。 Src * SrcA + Dest * (1 - SrcA)
+		kAdd,      //!< 加算。Src * SrcA + Dest * 1
+		kSubtract, //!< 減算。Dest * 1 - Src * SrcA
+		kMultily,  //!< 乗算。Src * 0 + Dest * Src
+		kScreen,   //!< スクリーン。Src * (1 - Dest) + Dest * 1
 
-		kCountOfBlendMode,    //!< ブレンドモード数。指定はしない
-		kMultily = kMultiply, //!< スペルミス互換用
+		kCountOfBlendMode, //!< ブレンドモード数。指定はしない
 	};
 
 public: // サブクラス
@@ -41,7 +39,7 @@ public: // サブクラス
 	/// </summary>
 	struct ConstBufferData {
 		Vector4 color; // 色 (RGBA)
-		Matrix4x4 mat; // ３Ｄ変換行列
+		Matrix4x4 mat;   // ３Ｄ変換行列
 	};
 
 public: // 静的メンバ関数

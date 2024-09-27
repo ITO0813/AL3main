@@ -17,6 +17,7 @@ cbuffer Material : register(b2) {
 	float m_alpha : packoffset(c2.w);    // アルファ
 	float3 m_uv_scale : packoffset(c3);  // UVスケール
 	float3 m_uv_offset : packoffset(c4); // UVオフセット
+	                                     // float3x3 uvTransform : packoffset(c3); // UV変換行列
 }
 
 // 平行光源の数
@@ -68,11 +69,6 @@ cbuffer LightGroup : register(b3) {
 	PointLight pointLights[POINTLIGHT_NUM];
 	SpotLight spotLights[SPOTLIGHT_NUM];
 	CircleShadow circleShadows[CIRCLESHADOW_NUM];
-}
-
-cbuffer ObjectColor : register(b4)
-{
-    float4 color; // オブジェクトのアルファ
 }
 
 // 頂点シェーダーからピクセルシェーダーへのやり取りに使用する構造体

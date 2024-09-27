@@ -1,21 +1,22 @@
 #pragma once
 
+#include "Material.h"
 #include "Vector2.h"
 #include "Vector3.h"
 #include <Windows.h>
-#include <cstdint>
 #include <d3d12.h>
-#include <string>
+#include <d3dx12.h>
 #include <unordered_map>
 #include <vector>
 #include <wrl.h>
 
-class Material;
-
 /// <summary>
 /// 形状データ
 /// </summary>
-class Mesh final {
+class Mesh {
+private: // エイリアス
+	// Microsoft::WRL::を省略
+	template<class T> using ComPtr = Microsoft::WRL::ComPtr<T>;
 
 public: // サブクラス
 	// 頂点データ構造体（テクスチャあり）
@@ -48,7 +49,7 @@ public: // メンバ関数
 	/// 頂点インデックスの追加
 	/// </summary>
 	/// <param name="index">インデックス</param>
-	void AddIndex(uint32_t index);
+	void AddIndex(unsigned short index);
 
 	/// <summary>
 	/// 頂点データの数を取得
@@ -61,7 +62,7 @@ public: // メンバ関数
 	/// </summary>
 	/// <param name="indexPosition">座標インデックス</param>
 	/// <param name="indexVertex">頂点インデックス</param>
-	void AddSmoothData(uint32_t indexPosition, uint32_t indexVertex);
+	void AddSmoothData(unsigned short indexPosition, unsigned short indexVertex);
 
 	/// <summary>
 	/// 平滑化された頂点法線の計算
@@ -128,15 +129,15 @@ public: // メンバ関数
 	/// インデックス配列を取得
 	/// </summary>
 	/// <returns>インデックス配列</returns>
-	inline const std::vector<uint32_t>& GetIndices() { return indices_; }
+	inline const std::vector<unsigned short>& GetIndices() { return indices_; }
 
 private: // メンバ変数
 	// 名前
 	std::string name_;
 	// 頂点バッファ
-	Microsoft::WRL::ComPtr<ID3D12Resource> vertBuff_;
+	ComPtr<ID3D12Resource> vertBuff_;
 	// インデックスバッファ
-	Microsoft::WRL::ComPtr<ID3D12Resource> indexBuff_;
+	ComPtr<ID3D12Resource> indexBuff_;
 	// 頂点バッファビュー
 	D3D12_VERTEX_BUFFER_VIEW vbView_ = {};
 	// インデックスバッファビュー
@@ -144,9 +145,9 @@ private: // メンバ変数
 	// 頂点データ配列
 	std::vector<VertexPosNormalUv> vertices_;
 	// 頂点インデックス配列
-	std::vector<uint32_t> indices_;
+	std::vector<unsigned short> indices_;
 	// 頂点法線スムージング用データ
-	std::unordered_map<uint32_t, std::vector<uint32_t>> smoothData_;
+	std::unordered_map<unsigned short, std::vector<unsigned short>> smoothData_;
 	// マテリアル
 	Material* material_ = nullptr;
 };

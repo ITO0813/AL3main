@@ -70,6 +70,7 @@ void ImGuiManager::Begin() {
 
 void ImGuiManager::End() {
 #ifdef _DEBUG
+
 	// 描画前準備
 	ImGui::Render();
 #endif
